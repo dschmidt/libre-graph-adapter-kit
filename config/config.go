@@ -1,24 +1,26 @@
 // Package config provides configuration-loading helpers shared by LibreGraph
 // adapter services: an OpenCloud-style yaml config-file loader.
 //
-// BindSourcesToStructs is copied, with minimal adjustments, from
-// opencloud-eu/opencloud (Apache-2.0), pkg/config/helpers.go. It is reproduced
-// here so adapter services can load an OpenCloud-style yaml config file WITHOUT
-// importing opencloud/pkg/config, which imports every OpenCloud service config
-// (and thus the whole OpenCloud/reva dependency tree). Only the light,
-// stdlib-only opencloud/pkg/config/defaults package (for BaseConfigPath) is
-// pulled in here. Behaviour and dependencies (gookit) match the original.
+// BindSourcesToStructs and BaseConfigPath are copied, with minimal
+// adjustments, from opencloud-eu/opencloud (Apache-2.0): pkg/config/helpers.go
+// and pkg/config/defaults/paths.go. They are reproduced here so adapter
+// services can load an OpenCloud-style yaml config file WITHOUT depending on
+// the opencloud module at all (importing opencloud/pkg/config drags in every
+// OpenCloud service config and thus the whole OpenCloud/reva tree; even
+// importing only opencloud/pkg/config/defaults would pull the opencloud module
+// into go.mod and let its dependency pins, e.g. libre-graph-api-go, override
+// the kit's). Behaviour and dependencies (gookit) match the original.
 package config
 
 import (
 	"io/fs"
+	"log"
 	"os"
 	"path"
 	"strings"
 
 	gofig "github.com/gookit/config/v2"
 	gooyaml "github.com/gookit/config/v2/yaml"
-	"github.com/opencloud-eu/opencloud/pkg/config/defaults"
 )
 
 // decoderConfigTagName sets the tag name to be used from the config structs.
@@ -30,7 +32,7 @@ var decoderConfigTagName = "yaml"
 // variable to struct `dst`.
 func BindSourcesToStructs(service string, dst interface{}) error {
 	fileSystem := os.DirFS("/")
-	filePath := strings.TrimLeft(path.Join(defaults.BaseConfigPath(), service+".yaml"), "/")
+	filePath := strings.TrimLeft(path.Join(BaseConfigPath(), service+".yaml"), "/")
 	return bindSourcesToStructs(fileSystem, filePath, service, dst)
 }
 
@@ -58,4 +60,35 @@ func bindSourcesToStructs(fileSystem fs.FS, filePath, service string, dst interf
 	}
 
 	return nil
+}
+
+var (
+	// BaseConfigPathType switches between modes: "homedir" or "path".
+	BaseConfigPathType = "homedir"
+	// BaseConfigPathValue is the default config path in "path" mode.
+	BaseConfigPathValue = "/etc/opencloud"
+)
+
+// BaseConfigPath returns the directory that holds service yaml config files,
+// honouring OC_CONFIG_DIR and otherwise following the OpenCloud convention.
+func BaseConfigPath() string {
+	p := os.Getenv("OC_CONFIG_DIR")
+	if p != "" {
+		return p
+	}
+
+	switch BaseConfigPathType {
+	case "homedir":
+		dir, err := os.UserHomeDir()
+		if err != nil {
+			// fallback to BaseConfigPathValue for users without home
+			return BaseConfigPathValue
+		}
+		return path.Join(dir, ".opencloud", "config")
+	case "path":
+		return BaseConfigPathValue
+	default:
+		log.Fatalf("BaseConfigPathType %s not found", BaseConfigPathType)
+		return ""
+	}
 }

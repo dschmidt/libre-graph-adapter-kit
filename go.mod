@@ -4,8 +4,7 @@ go 1.25.0
 
 require (
 	github.com/gookit/config/v2 v2.2.7
-	github.com/opencloud-eu/libre-graph-api-go v1.0.8-0.20260204102724-10bcda1b3068
-	github.com/opencloud-eu/opencloud v1.1.1-0.20260309132930-a8430384a1b7
+	github.com/opencloud-eu/libre-graph-api-go v1.0.7
 )
 
 require (
