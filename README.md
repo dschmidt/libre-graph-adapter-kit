@@ -7,7 +7,7 @@ Such adapters share a common shape: they accept requests in a foreign protocol, 
 ## Packages
 
 - `auth` - the OpenCloud credential model (OIDC bearer token, or username + app token), request extraction, context plumbing, and helpers to attach credentials to outgoing calls (both `*http.Request` and libregraph contexts). Supports per-request credential forwarding (proxy-style adapters) as well as static service accounts.
-- `graph` - convenience layer over the generated client: client construction (base URL, dev TLS), drive/space resolution by name, recursive children walks, KQL search and aggregation helpers, and signed download URL retrieval (`@microsoft.graph.downloadUrl`).
+- `graph` - convenience layer over the generated client: client construction (base URL, shared transport), current-user lookup, drive/space resolution by name, children listing and recursive file walks, and driveItem lookup by composite resource id. Planned once the required API surface reaches a released `libre-graph-api-go`: KQL search and aggregation helpers, signed download URL retrieval (`@microsoft.graph.downloadUrl`).
 - `proxy` - stream a driveItem's content to an `http.ResponseWriter` with Range and conditional header passthrough, so media clients can seek and cache. A whitelist-based configuration of `httputil.ReverseProxy`: only download-relevant headers cross in either direction.
 
 ## Status
