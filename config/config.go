@@ -10,6 +10,10 @@
 // importing only opencloud/pkg/config/defaults would pull the opencloud module
 // into go.mod and let its dependency pins, e.g. libre-graph-api-go, override
 // the kit's). Behaviour and dependencies (gookit) match the original.
+//
+// Upstream has extracted BindSourcesToStructs into a leaf package
+// pkg/config/binder in opencloud-eu/opencloud#3270; we keep this copy so the
+// kit still does not depend on the opencloud module.
 package config
 
 import (
